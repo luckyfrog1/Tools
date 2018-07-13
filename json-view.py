@@ -1,6 +1,6 @@
 import json
-
-
+import xlwt
+import time
 class JsonTools():
     def __init__(self,path):
         self.jsonPath = path
@@ -21,38 +21,52 @@ class JsonTools():
         return json_list
         # 返回最终包含dict元素的列表
 
-    def filter(self, field, field_value1=None, field_2=None, field_value2=None, empty_filter=None):
+    def filter(self, key, field, field_value1=None, field_2=None, field_value2=None, empty_filter=None):
         """
         该方法用于从初始化后的列表中，循环按字典的key提取对应的value值
         param：
-        field：key
-        field_value1：field的补充筛选条件，类似于sql的where a == 1
+        key: 返回的字典中的key对应的字段
+        field：要过滤的字段名
+        field_value1：field的补充筛选条件，类似于sql的where field == field_value1
         field_2：如果value是一个字典，需要按子key进行提取时可以使用该参数
         field_value2：子key的补充筛选条件
         empty_filter：过滤value为空或空列表[]的元素
         """
         cmp = {}
         for each in self.json:
+            # try:
+            #     if not empty_filter:
+            #         cmp[each[key]] = each[field]
+                    # 如果empty_filter为None，将每一行key字段的值作为键，field对应的值作为value保存到cmp字典中
+                # else:
+                #     if each[field] != [] and each[field] != None and each[field] != [""]:
+                #         如果empty_filter字段为空，则对field对应的值进行判空，如果不为空列表、None、空列表中含有空字符串情况，则进行保存
+                        # cmp[each[key]] = each[field]
+            # except KeyError:
+                #     cmp[each[key]] = "Nonexistent key"
             try:
                 if not empty_filter:
-                    cmp[each['_id']] = each[field]
+                    if not isinstance(cmp[each[key]], list):
+                        cmp[each[key]] = []
+                    cmp[each[key]].append(each[field])
+                    # 如果empty_filter为None，将每一行key字段的值作为键，field对应的值作为value保存到cmp字典中
                 else:
                     if each[field] != [] and each[field] != None and each[field] != [""]:
-                        cmp[each['_id']] = each[field]
+                        # 如果empty_filter字段为空，则对field对应的值进行判空，如果不为空列表、None、空列表中含有空字符串情况，则进行保存
+                        if not isinstance(cmp[each[key]], list):
+                            cmp[each[key]] = []
+                        cmp[each[key]].append(each[field])
             except KeyError:
-                    cmp[each['_id']] = "Nonexistent key"
+                cmp[each[key]] = "Nonexistent key"
         return cmp
 
-viewjson = JsonTools('View.json')
+def time_trans(Unixtime):
+    st = time.localtime(Unixtime)
+    return time.strftime('%Y-%m-%d %H:%M:%S', st)
+
+viewjson = JsonTools('View201807071114.json')
 viewjsonContent = viewjson.json
-# filters = viewjson.filter('Filters', empty_filter=True)
-filters = viewjson.filter('ExcludeParams', empty_filter=True)
-# print(filters)
-for each in filters.items():
-    print(each)
-
-
-
-
-
+print(viewjsonContent[-1].keys())
+for each in viewjsonContent[::-1]:
+    print(time_trans(each["CreateTime"]),"SiteId",each['SiteId'])
 
